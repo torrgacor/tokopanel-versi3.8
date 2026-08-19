@@ -1,0 +1,6 @@
+node_modules/
+.next/
+.npm/
+.cache/
+Riskiwebsite-updated.zip
+package-lock.json
