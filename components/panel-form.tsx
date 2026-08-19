@@ -298,7 +298,7 @@ export default function PanelForm() {
           Yuk beli panel di sini, Panel sudah terjamin keamanannya dan harganya pas di kantong kamu.
         </p>
         <p className="mt-1 text-xs text-gray-500">
-          Silakan isi data di bawah dan pilih paket yang sesuai untuk mendapatkan panel server terbaik kamu.
+          Silakan isi data di bawah dan pilih paket yang sesuai untuk mendapatkan server panel terbaik kamu.
         </p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-6 pb-6">
