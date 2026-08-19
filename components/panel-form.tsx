@@ -290,8 +290,7 @@ export default function PanelForm() {
   return (
     <>
       <div className="rounded-3xl border border-dark-300 bg-dark-500 p-5 mb-6">
-        <h1 className="text-1xl font-semibold text-white">LINK DOWNLOAD SCRIPT</h1>
-        <h1 className="text-1xl font-semibold text-white">⇩SCROLL KE BAWAH⇩</h1>
+        <h1 className="text-1xl font-semibold text-white">SELAMAT DATANG,</h1>
         <p className="mt-2 text-sm text-gray-400">
           Bingung cari tempat beli panel yang murah dan aman dimana?
         </p>
@@ -299,7 +298,7 @@ export default function PanelForm() {
           Yuk beli panel di sini, Panel sudah terjamin keamanannya dan harganya pas di kantong kamu.
         </p>
         <p className="mt-1 text-xs text-gray-500">
-          Silakan isi data dan pilih paket yang sesuai untuk mendapatkan panel server terbaik anda.
+          Silakan isi data di bawah dan pilih paket yang sesuai untuk mendapatkan panel server terbaik kamu.
         </p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-6 pb-6">
