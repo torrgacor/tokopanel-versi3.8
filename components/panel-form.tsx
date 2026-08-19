@@ -478,7 +478,7 @@ export default function PanelForm() {
             <div className="grid grid-cols-3 gap-2">
               {[15, 30, 45].map((duration) => {
                 const isActive = selectedDurationDays === duration
-                const label = duration === 30 ? "Default" : duration === 15 ? "Hemat 50%" : "Tambah 50%"
+                const label = duration === 30 ? "Default" : duration === 15 ? "Potongan 50%" : "Tambahan 50%"
                 const priceInfo = duration === 15 ? "- 50%" : duration === 45 ? "+ 50%" : "Tanpa biaya tambahan"
 
                 return (
@@ -499,7 +499,7 @@ export default function PanelForm() {
                 )
               })}
             </div>
-            <p className="text-xs text-gray-400">Default durasi 30 hari. Pilihan 15 hari diskon 50%, dan 45 hari tambah 50% dari harga dasar.</p>
+            <p className="text-xs text-gray-400">Default durasi 30 hari. Pilihan 15 hari di potong 50%, dan 45 hari tambah 50% dari harga dasar.</p>
           </div>
 
           <AnimatePresence mode="wait">
