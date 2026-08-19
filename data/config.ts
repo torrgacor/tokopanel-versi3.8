@@ -8,7 +8,7 @@ export interface EggConfig {
 export const pterodactylConfig = { 
   // Private Server Configuration
   private: {
-    domain: "https://tokopanel151-private26.panelshop.biz.id",
+    domain: "https://serverpanel01.tokopanel.store",
     apiKey: process.env.PANEL_APIKEY_PRIVATE,
     nests: "5", 
     eggs: [  
@@ -20,7 +20,7 @@ export const pterodactylConfig = {
   },
   // Public Server Configuration
   public: {
-    domain: "https://tokopanel151-private26.panelshop.biz.id",
+    domain: "https://serverpanel01.tokopanel.store",
     apiKey: process.env.PANEL_APIKEY_PRIVATE,
     nests: "5", 
     eggs: [  // Changed from 'egg' to 'eggs' (array)
