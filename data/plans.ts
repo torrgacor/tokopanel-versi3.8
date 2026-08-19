@@ -28,7 +28,7 @@ Variasi durasi nya biar kamu makin mudah testing nya, bisa buat satu plan baru y
 
 export const plans: Plan[] = [
   // PAKET PANEL BOT
-  {
+  /*{
     id: "bot3gb",
     type: "private",
     access: "regular",
@@ -53,7 +53,7 @@ export const plans: Plan[] = [
     durationDays: 20,
     description: "𝗣𝗮𝗸𝗲𝘁 𝗦𝘁𝗮𝗻𝗱𝗮𝗿 𝗨𝗻𝘁𝘂𝗸 𝗦𝗰𝗿𝗶𝗽𝘁 𝗕𝗼𝘁 𝗥𝗶𝗻𝗴𝗮𝗻",
     features: ["Full Akses Panel Bot Pterodactyl", "Support Egg Node.js 15 - 24", "Support Egg Python 2.7 - 3.13", "Bebas Ganti Script", "Server Private dan Terjaga", "Keamanan Data dan Privasi Terjamin", "Aman Dari Pencurian Files", "Server Aktif 24 Jam NonStop"],
-  },
+  },*/
   {
     id: "bot5gb",
     type: "private",
