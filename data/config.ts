@@ -57,7 +57,7 @@ export const appConfig = {
     from: "Tukang Panel <mail.mts4youxd425@gmail.com>",
   }, // ganti sendiri 
   telegram: {
-    botToken: "8518039874:AAElA2moZRdCC68vZRvy3YPU5b5qdBtANH0",
+    botToken: "8877809073:AAEwdj729MJYpFyDxNGuMx-K15jAMBaUhhI",
     ownerId: "7015524549",
     channelId: "@testimonimts4you",
   },
