@@ -59,7 +59,7 @@ export const appConfig = {
   telegram: {
     botToken: "8877809073:AAEwdj729MJYpFyDxNGuMx-K15jAMBaUhhI",
     ownerId: "7015524549",
-    channelId: "@testimonimts4you",
+    channelId: "@TokoPanel_Testimonitrx",
   },
   mongodb: {
     uri: process.env.MONGODB_URL, // url mongo mu
