@@ -133,9 +133,7 @@ async function createTransactionImage(data: {
   const username = truncate(data.username || "Pelanggan", 24)
   const email = truncate(maskEmail(data.email || ""), 30)
   const transactionId = truncate(data.transactionId || "-", 28)
-  const svg = `<!DOCTYPE html>
-<html>
-<head>
+  const html = `<div xmlns="http://www.w3.org/1999/xhtml">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     * {
@@ -233,8 +231,7 @@ async function createTransactionImage(data: {
       letter-spacing: 0.5px;
     }
   </style>
-</head>
-<body>
+  <body>
   <div class="card">
     <div class="header">
       <div class="header-icon">
@@ -287,7 +284,12 @@ async function createTransactionImage(data: {
     </div>
   </div>
 </body>
-</html>`
+</div>`
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="460" viewBox="0 0 420 460">
+  <foreignObject x="0" y="0" width="420" height="460">
+    ${html}
+  </foreignObject>
+</svg>`
   return sharp(Buffer.from(svg)).png().toBuffer()
 }
 
