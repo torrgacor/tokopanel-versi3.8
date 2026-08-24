@@ -113,13 +113,18 @@ export async function jalankanCronExpirePanel(sumber: "otomatis" | "manual" = "o
           subject: `Masa Aktif Panel Anda Telah Berakhir - ${appConfig.nameHost}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
-              <div style="background: #111827; color: white; padding: 16px; border-radius: 8px 8px 0 0;">
+              <div style="background: #e53e3e; color: white; padding: 16px; border-radius: 8px 8px 0 0;">
                 <h2 style="margin: 0; font-size: 20px;">Panel Anda Sudah Expired</h2>
               </div>
               <div style="padding: 20px; background: #f9fafb; color: #111827;">
                 <p>Halo ${payment.username},</p>
                 <p>Masa aktif panel Anda dengan ID transaksi <strong>${payment.transactionId}</strong> sudah berakhir dan server telah dihapus secara otomatis dari sistem kami.</p>
                 <p>Silakan lakukan pemesanan ulang jika Anda masih membutuhkan layanan ini.</p>
+                <div style="text-align: center; margin: 20px 0;">
+            <a href="${appConfig.LinkWebsite}" style="background-color: #e53e3e; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+              Order Panel
+            </a>
+          </div>
                 <p>Salam,<br/>Tim ${appConfig.nameHost}</p>
               </div>
             </div>
@@ -149,13 +154,18 @@ export async function jalankanCronExpirePanel(sumber: "otomatis" | "manual" = "o
           subject: `Pengingat: Panel Anda Akan Expired 2 Hari Lagi - ${appConfig.nameHost}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
-              <div style="background: #111827; color: white; padding: 16px; border-radius: 8px 8px 0 0;">
+              <div style="background: #e53e3e; color: white; padding: 16px; border-radius: 8px 8px 0 0;">
                 <h2 style="margin: 0; font-size: 20px;">Pengingat Masa Aktif Panel</h2>
               </div>
               <div style="padding: 20px; background: #f9fafb; color: #111827;">
                 <p>Halo ${payment.username},</p>
                 <p>Panel Anda dengan ID transaksi <strong>${payment.transactionId}</strong> akan berakhir masa aktifnya pada <strong>${new Date(payment.expiresAt).toLocaleString("id-ID")}</strong>.</p>
                 <p>Silakan lakukan perpanjangan sebelum tanggal tersebut agar panel tidak terhapus otomatis.</p>
+                <div style="text-align: center; margin: 20px 0;">
+            <a href="${appConfig.LinkWebsite}/perpanjang" style="background-color: #e53e3e; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+              Perpanjang Panel
+            </a>
+          </div>
                 <p>Salam,<br/>Tim ${appConfig.nameHost}</p>
               </div>
             </div>
