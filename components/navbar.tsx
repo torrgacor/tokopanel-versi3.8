@@ -60,9 +60,9 @@ export default function Navbar() {
           <NavLink href="/history" label="Riwayat" scrolled={scrolled} icon={<History className="w-4 h-4 mr-1" />} />
           <NavLink href="/garansi" label="Garansi" scrolled={scrolled} icon={<ShieldCheck className="w-4 h-4 mr-1" />} />
           <NavLink href="/perpanjang" label="Perpanjang" scrolled={scrolled} icon={<Clock3 className="w-4 h-4 mr-1" />} />
-          <NavLink href="/beli-adp" label="Join Admin Panel" scrolled={scrolled} icon={<FileText className="w-4 h-4 mr-1" />} />
+          {/*<NavLink href="/beli-adp" label="Join Admin Panel" scrolled={scrolled} icon={<FileText className="w-4 h-4 mr-1" />} />*/}
           <NavLink href="/affiliate" label="Menjadi Affiliate" scrolled={scrolled} icon={<TrendingUp className="w-4 h-4 mr-1" />} />
-          <NavLink href={appConfig.whatsappGroupLink} label="Tutorial" scrolled={scrolled} icon={<MonitorPlay className="w-4 h-4 mr-1" />} external />
+          <NavLink href={appConfig.LinkTutorial} label="Tutorial" scrolled={scrolled} icon={<MonitorPlay className="w-4 h-4 mr-1" />} external />
         </div>
 
         <button
@@ -163,7 +163,7 @@ export default function Navbar() {
             icon={<TrendingUp className="w-4 h-4 mr-2" />}
           />
           <MobileNavLink
-            href={appConfig.whatsappGroupLink}
+            href={appConfig.LinkTutorial}
             label="Tutorial"
             onClick={() => setIsOpen(false)}
             icon={<Users className="w-4 h-4 mr-2" />}
