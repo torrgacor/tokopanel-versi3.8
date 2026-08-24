@@ -133,20 +133,161 @@ async function createTransactionImage(data: {
   const username = truncate(data.username || "Pelanggan", 24)
   const email = truncate(maskEmail(data.email || ""), 30)
   const transactionId = truncate(data.transactionId || "-", 28)
-  const svg = `<svg width="1080" height="1080" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg">
-    <rect width="1080" height="1080" fill="#110f12"/><rect x="34" y="34" width="1012" height="1012" rx="28" fill="#1d171b" stroke="#b51f2e" stroke-width="4"/><rect x="34" y="34" width="1012" height="18" fill="#e12d3f"/>
-    <path d="M100 175h42l18 105h190l22-78H158" fill="none" stroke="#f04455" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/><circle cx="184" cy="314" r="15" fill="#f04455"/><circle cx="326" cy="314" r="15" fill="#f04455"/>
-    <text x="390" y="245" fill="#ffffff" font-family="Arial, sans-serif" font-size="64" font-weight="700">TokoPanel</text>
-    <text x="100" y="405" fill="#ffffff" font-family="Arial, sans-serif" font-size="42" font-weight="700">PEMBELIAN ${safe(planName)}</text><text x="100" y="465" fill="#ef9aa3" font-family="Arial, sans-serif" font-size="32">BERHASIL DI ORDER OLEH ${safe(username)}</text><line x1="100" y1="525" x2="980" y2="525" stroke="#71303a" stroke-width="3"/>
-    <text x="100" y="590" fill="#d8c7ca" font-family="Arial, sans-serif" font-size="30">PRODUK</text><text x="980" y="590" text-anchor="end" fill="#ffffff" font-family="Arial, sans-serif" font-size="30" font-weight="700">${safe(planName)}</text>
-    <text x="100" y="655" fill="#d8c7ca" font-family="Arial, sans-serif" font-size="30">TOTAL BIAYA</text><text x="980" y="655" text-anchor="end" fill="#ff5968" font-family="Arial, sans-serif" font-size="30" font-weight="700">${safe(formatRupiah(data.total))}</text>
-    <text x="100" y="720" fill="#d8c7ca" font-family="Arial, sans-serif" font-size="30">JUMLAH PANEL</text><text x="980" y="720" text-anchor="end" fill="#ffffff" font-family="Arial, sans-serif" font-size="30" font-weight="700">${data.quantity} panel</text>
-    <text x="100" y="785" fill="#d8c7ca" font-family="Arial, sans-serif" font-size="30">DURASI MASA AKTIF</text><text x="980" y="785" text-anchor="end" fill="#ffffff" font-family="Arial, sans-serif" font-size="30" font-weight="700">${data.durationDays} hari</text>
-    <text x="100" y="850" fill="#d8c7ca" font-family="Arial, sans-serif" font-size="30">EMAIL</text><text x="980" y="850" text-anchor="end" fill="#ffffff" font-family="Arial, sans-serif" font-size="30" font-weight="700">${safe(email)}</text>
-    <text x="100" y="915" fill="#d8c7ca" font-family="Arial, sans-serif" font-size="30">BERHASIL PADA</text><text x="980" y="915" text-anchor="end" fill="#ffffff" font-family="Arial, sans-serif" font-size="27" font-weight="700">${safe(date)}</text>
-    <rect x="100" y="955" width="880" height="60" rx="12" fill="#c92738"/><text x="540" y="996" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="32" font-weight="700">TRANSAKSI BERHASIL</text>
-    <text x="100" y="1040" fill="#cbaeb3" font-family="Arial, sans-serif" font-size="22">ID: ${safe(transactionId)}</text>
-  </svg>`
+  const svg = `<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    body {
+      width: 420px;
+      background-color: #0d0608;
+      color: #ffffff;
+      padding: 16px;
+    }
+    .card {
+      background: #160b0e;
+      border: 2px solid #e11d48;
+      border-radius: 16px;
+      padding: 24px 20px;
+      box-shadow: 0 0 15px rgba(225, 29, 72, 0.2);
+    }
+    /* Header: Icon & Nama Toko */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .header-icon {
+      font-size: 42px;
+      color: #e11d48;
+    }
+    .brand-title {
+      font-size: 14px;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      text-transform: uppercase;
+    }
+    /* Sub Header & Garis */
+    .section-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+    .section-subtitle {
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 16px;
+    }
+    .divider {
+      border: none;
+      height: 1px;
+      background: rgba(225, 29, 72, 0.4);
+      margin: 16px 0 20px 0;
+    }
+    /* Inner Detail (Kanan & Kiri) */
+    .detail-header {
+      text-align: right;
+      font-size: 13px;
+      color: #94a3b8;
+      font-weight: bold;
+      margin-bottom: 14px;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      font-size: 13px;
+    }
+    .label {
+      color: #94a3b8;
+      font-weight: bold;
+    }
+    .val {
+      color: #ffffff;
+      font-weight: bold;
+      text-align: right;
+    }
+    .total-val {
+      color: #e11d48;
+      font-size: 15px;
+    }
+    /* Tombol Status Merah di Bawah */
+    .status-btn {
+      background: #e11d48;
+      color: #ffffff;
+      text-align: center;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: bold;
+      margin-top: 24px;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div class="header-icon">
+        <i class="fa-solid fa-cart-shopping"></i>
+      </div>
+      <div>
+        <div class="section-title">TokoPanel Official</div>
+        <div class="brand-title">PEMBELIAN PANEL</div>
+      </div>
+    </div>
+
+    <div class="section-subtitle">PEMBELIAN ${safe(planName)} BERHASIL DI ORDER OLEH ${safe(username)}</div>
+    
+    <hr class="divider">
+
+    <div class="detail-header">DETAIL TRANSAKSI</div>
+
+    <div class="row">
+      <span class="label">PRODUK</span>
+      <span class="val">${safe(planName)}</span>
+    </div>
+
+    <div class="row">
+      <span class="label">TOTAL BIAYA</span>
+      <span class="val" style="color: #e11d48;">${safe(formatRupiah(data.total))}</span>
+    </div>
+
+    <div class="row">
+      <span class="label">JUMLAH PANEL</span>
+      <span class="val">${data.quantity} Panel</span>
+    </div>
+
+    <div class="row">
+      <span class="label">DURASI MASA AKTIF</span>
+      <span class="val">${data.durationDays} Hari</span>
+    </div>
+
+    <div class="row">
+      <span class="label">METODE</span>
+      <span class="val">Qris</span>
+    </div>
+
+    <div class="row">
+      <span class="label">WAKTU</span>
+      <span class="val" style="font-size: 11px;">${safe(date)}</span>
+    </div>
+
+    <div class="status-btn">
+      ✓ TRANSAKSI BERHASIL
+    </div>
+  </div>
+</body>
+</html>`
   return sharp(Buffer.from(svg)).png().toBuffer()
 }
 
