@@ -46,6 +46,9 @@ export interface PaymentData {
   expiresAt?: string
   reminderSent?: boolean
   expiredProcessed?: boolean
+  isRenewal?: boolean
+  renewalForTransactionId?: string
+  renewalDays?: 15 | 30
 }
 
 export async function createPayment(data: {
@@ -228,6 +231,102 @@ export async function getPayment(
   } catch (error) {
     console.error("Error getPayment:", error)
     return null
+  }
+}
+
+export async function createRenewalPayment(data: {
+  transactionId: string
+  email: string
+  renewalDays: 15 | 30
+}) {
+  try {
+    const client = await clientPromise
+    const db = client.db(appConfig.mongodb.dbName)
+    const originalPayment = await db.collection<PaymentData>("payments").findOne({
+      transactionId: data.transactionId.trim(),
+      status: "completed",
+    })
+
+    if (!originalPayment || originalPayment.email.trim().toLowerCase() !== data.email.trim().toLowerCase()) {
+      return { success: false, error: "Transaksi tidak ditemukan, email tidak cocok, atau panel sudah expired" }
+    }
+
+    const plan = plans.find((item) => item.id === originalPayment.planId)
+    if (!plan) return { success: false, error: "Paket transaksi tidak ditemukan" }
+
+    const basePrice = Math.round(plan.price * (originalPayment.quantity || 1) * (data.renewalDays === 15 ? 0.5 : 1))
+    const internalFee = calculateFee(basePrice)
+    const paymentAmount = basePrice + internalFee
+    const transactionId = generateTransactionId()
+    const method = "QRIS2"
+    const apiId = appConfig.pay.api_id
+    const apiKey = appConfig.pay.api_key
+
+    if (!apiId || !apiKey) throw new Error("Sakurupiah API credentials belum disetel")
+
+    const signature = crypto.createHmac("sha256", apiKey)
+      .update(apiId + method + transactionId + paymentAmount)
+      .digest("hex")
+    const bodyData = new URLSearchParams()
+    bodyData.append("api_id", apiId)
+    bodyData.append("method", method)
+    bodyData.append("name", originalPayment.username)
+    bodyData.append("email", originalPayment.email)
+    bodyData.append("phone", "6280000000000")
+    bodyData.append("amount", paymentAmount.toString())
+    bodyData.append("merchant_fee", "2")
+    bodyData.append("merchant_ref", transactionId)
+    bodyData.append("expired", "24")
+    bodyData.append("produk[]", `${plan.name} - Perpanjangan ${data.renewalDays} Hari`)
+    bodyData.append("qty[]", "1")
+    bodyData.append("harga[]", basePrice.toString())
+    bodyData.append("callback_url", "https://panelshopv3.mts4you.biz.id/callback")
+    bodyData.append("return_url", `https://panelshopv3.mts4you.biz.id/invoice/${transactionId}`)
+    bodyData.append("signature", signature)
+
+    const response = await fetch("https://sakurupiah.id/api/create.php", {
+      method: "POST",
+      body: bodyData,
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/x-www-form-urlencoded" },
+    })
+    const raw = await response.text()
+    let json: any
+    try {
+      json = JSON.parse(raw)
+    } catch {
+      throw new Error("API Sakurupiah tidak mengembalikan JSON")
+    }
+    if (json.status !== "200") throw new Error(json.message || "Gagal membuat invoice perpanjangan")
+
+    const pay = json.data[0]
+    await db.collection<PaymentData>("payments").insertOne({
+      transactionId,
+      vpediaId: pay.trx_id,
+      planId: originalPayment.planId,
+      username: originalPayment.username,
+      email: originalPayment.email,
+      serverType: originalPayment.serverType,
+      accessType: originalPayment.accessType,
+      amount: basePrice,
+      fee: pay.fee + internalFee,
+      total: pay.total,
+      qrImageUrl: pay.qr,
+      expirationTime: new Date(pay.expired).toISOString(),
+      status: pay.payment_status === "pending" ? "pending" : "failed",
+      createdAt: new Date().toISOString(),
+      quantity: 1,
+      durationDays: data.renewalDays,
+      isRenewal: true,
+      renewalForTransactionId: originalPayment.transactionId,
+      renewalDays: data.renewalDays,
+      panelUserId: originalPayment.panelUserId,
+      panelServerIds: originalPayment.panelServerIds,
+    })
+
+    return { success: true, transactionId }
+  } catch (error) {
+    console.error("Error createRenewalPayment:", error)
+    return { success: false, error: error instanceof Error ? error.message : "Terjadi kesalahan" }
   }
 }
 

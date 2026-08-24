@@ -7,6 +7,7 @@ import { createPanel } from "./create-panel"
 import { appConfig } from "@/data/config"
 import { markVoucherAsUsed } from "./voucher-actions"
 import { recordReferralOrder } from "./referral-tracking"
+import clientPromise from "@/lib/mongodb"
 
 const API_ID = appConfig.pay.api_id
 const API_KEY = appConfig.pay.api_key
@@ -25,6 +26,45 @@ export async function checkPaymentStatus(transactionId: string) {
         status: "completed",
         panelDetails: payment.panelDetails,
       }
+    }
+
+    if (payment.isRenewal && payment.renewalForTransactionId) {
+      const target = await getPayment(payment.renewalForTransactionId)
+      if (!target || target.status !== "completed" || target.email.toLowerCase() !== payment.email.toLowerCase()) {
+        return { success: false, error: "Transaksi panel yang diperpanjang sudah tidak aktif" }
+      }
+
+      const form = new FormData()
+      form.append("api_id", API_ID)
+      form.append("method", "status")
+      form.append("trx_id", payment.vpediaId)
+      const response = await fetch(API_STATUS_URL, { method: "POST", body: form, headers: { Authorization: `Bearer ${API_KEY}` } })
+      const data = await response.json()
+      if (data.status !== "200") return { success: false, error: "Gagal cek status pembayaran" }
+      const status = data.data?.[0]?.status?.toLowerCase()
+      if (status === "pending") return { success: true, status: "pending" }
+      if (status === "gagal") {
+        await updatePaymentStatus(transactionId, "failed")
+        return { success: true, status: "failed" }
+      }
+      if (status !== "berhasil") return { success: true, status: "pending" }
+
+      const client = await clientPromise
+      const db = client.db(appConfig.mongodb.dbName)
+      const now = Date.now()
+      const currentExpiry = target.expiresAt ? new Date(target.expiresAt).getTime() : now
+      const expiresAt = new Date(Math.max(now, currentExpiry) + (payment.renewalDays || 30) * 86400000).toISOString()
+      await db.collection("payments").updateOne(
+        { transactionId: target.transactionId, status: "completed" },
+        { $set: { expiresAt, reminderSent: false } },
+      )
+      await updatePaymentStatus(transactionId, "completed", target.panelDetails, {
+        panelUserId: target.panelUserId,
+        panelServerIds: target.panelServerIds,
+        expiresAt,
+      })
+      revalidatePath(`/invoice/${transactionId}`)
+      return { success: true, status: "completed", panelDetails: target.panelDetails }
     }
 
     const form = new FormData()
