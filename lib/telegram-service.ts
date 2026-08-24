@@ -1,4 +1,5 @@
 import { appConfig } from "@/data/config"
+import sharp from "sharp"
 
 export async function sendTelegramNotification(
   userId: number,
@@ -53,7 +54,11 @@ export async function sendTelegramTestimonial(
   planName: string,
   price: number,
   email: string,
-  quantity: number = 1
+  quantity: number = 1,
+  username: string = email.split("@")[0],
+  total: number = price,
+  durationDays: number = 30,
+  completedAt: string = new Date().toISOString(),
 ) {
   try {
     const channelId = appConfig?.telegram?.channelId
@@ -64,28 +69,17 @@ export async function sendTelegramTestimonial(
       return { success: false, error: "Missing channelId or botToken" }
     }
 
-    const totalServerText = quantity > 1 ? ` sebanyak *${quantity}x*` : ""
-    const maskedEmail = maskEmail(email)
-
-    const message =
-      `*Pembelian panel berhasil*\\.\n\n` +
-      `*ID Transaksi:* \`${escapeMarkdown(transactionId)}\`\n` +
-      `*Produk:* ${escapeMarkdown(planName)}${totalServerText}\n` +
-      `*Total Biaya:* ${escapeMarkdown(formatRupiah(price))}\n` +
-      `*Email:* ${escapeMarkdown(maskedEmail)}\n` +
-      `*Status:* \`Berhasil Diaktifkan\`\n\n` +
-      `Terima kasih telah menggunakan layanan kami\\. Hubungi admin atau kunjungi website utama untuk pemesanan lainnya\\.`
+    const image = await createTransactionImage({ planName, username, total, quantity, durationDays, completedAt })
+    const form = new FormData()
+    form.append("chat_id", channelId)
+    form.append("photo", new Blob([image], { type: "image/png" }), "transaksi-berhasil.png")
+    form.append("caption", `Transaksi Berhasil - ${planName}`)
 
     const response = await fetch(
-      `https://api.telegram.org/bot${botToken}/sendMessage`,
+      `https://api.telegram.org/bot${botToken}/sendPhoto`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: channelId,
-          text: message,
-          parse_mode: "MarkdownV2",
-        }),
+        body: form,
       }
     )
 
@@ -97,6 +91,32 @@ export async function sendTelegramTestimonial(
     console.error("Error sending Telegram testimonial:", error)
     return { success: false, error }
   }
+}
+
+async function createTransactionImage(data: {
+  planName: string
+  username: string
+  total: number
+  quantity: number
+  durationDays: number
+  completedAt: string
+}) {
+  const safe = (value: string) => value.replace(/[&<>\"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '\"': "&quot;", "'": "&apos;" })[character] || character)
+  const date = new Date(data.completedAt).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })
+  const svg = `<svg width="1080" height="1080" viewBox="0 0 1080 1080" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1080" height="1080" fill="#110f12"/><rect x="34" y="34" width="1012" height="1012" rx="28" fill="#1d171b" stroke="#b51f2e" stroke-width="4"/><rect x="34" y="34" width="1012" height="18" fill="#e12d3f"/>
+    <path d="M100 175h42l18 105h190l22-78H158" fill="none" stroke="#f04455" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/><circle cx="184" cy="314" r="15" fill="#f04455"/><circle cx="326" cy="314" r="15" fill="#f04455"/>
+    <text x="390" y="245" fill="#ffffff" font-family="Arial, sans-serif" font-size="64" font-weight="700">TokoPanel</text>
+    <text x="100" y="405" fill="#ffffff" font-family="Arial, sans-serif" font-size="42" font-weight="700">PEMBELIAN ${safe(data.planName)}</text><text x="100" y="465" fill="#ef9aa3" font-family="Arial, sans-serif" font-size="32">BERHASIL DI ORDER OLEH ${safe(data.username)}</text><line x1="100" y1="525" x2="980" y2="525" stroke="#71303a" stroke-width="3"/>
+    <text x="100" y="590" fill="#d8c7ca" font-family="Arial, sans-serif" font-size="30">PRODUK</text><text x="980" y="590" text-anchor="end" fill="#ffffff" font-family="Arial, sans-serif" font-size="30" font-weight="700">${safe(data.planName)}</text>
+    <text x="100" y="655" fill="#d8c7ca" font-family="Arial, sans-serif" font-size="30">TOTAL BIAYA</text><text x="980" y="655" text-anchor="end" fill="#ff5968" font-family="Arial, sans-serif" font-size="30" font-weight="700">${safe(formatRupiah(data.total))}</text>
+    <text x="100" y="720" fill="#d8c7ca" font-family="Arial, sans-serif" font-size="30">JUMLAH PANEL</text><text x="980" y="720" text-anchor="end" fill="#ffffff" font-family="Arial, sans-serif" font-size="30" font-weight="700">${data.quantity} panel</text>
+    <text x="100" y="785" fill="#d8c7ca" font-family="Arial, sans-serif" font-size="30">DURASI MASA AKTIF</text><text x="980" y="785" text-anchor="end" fill="#ffffff" font-family="Arial, sans-serif" font-size="30" font-weight="700">${data.durationDays} hari</text>
+    <text x="100" y="850" fill="#d8c7ca" font-family="Arial, sans-serif" font-size="30">METODE PEMBAYARAN</text><text x="980" y="850" text-anchor="end" fill="#ffffff" font-family="Arial, sans-serif" font-size="30" font-weight="700">QRIS</text>
+    <text x="100" y="915" fill="#d8c7ca" font-family="Arial, sans-serif" font-size="30">BERHASIL PADA</text><text x="980" y="915" text-anchor="end" fill="#ffffff" font-family="Arial, sans-serif" font-size="27" font-weight="700">${safe(date)}</text>
+    <rect x="100" y="955" width="880" height="60" rx="12" fill="#c92738"/><text x="540" y="996" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="32" font-weight="700">TRANSAKSI BERHASIL</text>
+  </svg>`
+  return sharp(Buffer.from(svg)).png().toBuffer()
 }
 
 function maskEmail(email: string): string {

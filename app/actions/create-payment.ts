@@ -251,6 +251,15 @@ export async function createRenewalPayment(data: {
       return { success: false, error: "Transaksi tidak ditemukan, email tidak cocok, atau panel sudah expired" }
     }
 
+    const expiresAt = originalPayment.expiresAt ? new Date(originalPayment.expiresAt).getTime() : 0
+    const remainingMs = expiresAt - Date.now()
+    if (!expiresAt || remainingMs <= 0) {
+      return { success: false, error: "Panel sudah expired dan tidak dapat diperpanjang melalui transaksi ini" }
+    }
+    if (remainingMs > 2 * 24 * 60 * 60 * 1000) {
+      return { success: false, error: "Perpanjangan hanya dapat dilakukan saat masa aktif tersisa maksimal 2 hari" }
+    }
+
     const plan = plans.find((item) => item.id === originalPayment.planId)
     if (!plan) return { success: false, error: "Paket transaksi tidak ditemukan" }
 

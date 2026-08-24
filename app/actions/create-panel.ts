@@ -22,6 +22,8 @@ type PanelData = {
   createdAt: string
   selectedEggId?: number 
   quantity: number
+  total?: number
+  durationDays?: number
 }
 
 export async function createPanel(data: PanelData) {
@@ -39,18 +41,18 @@ export async function createPanel(data: PanelData) {
       createdAt,
       selectedEggId, 
       quantity,
+      total = 0,
+      durationDays,
     } = data
 
     const password = generatePassword(10)
     const pterodactyl = new Pterodactyl(serverType, accessType)
-
     console.log(`[${serverType.toUpperCase()}] Creating user ${username}`)
 
     const userResponse = await pterodactyl.createUser(
       username,
       email,
-      password,
-      accessType
+      password
     )
 
     if (!userResponse.attributes) {
@@ -118,7 +120,11 @@ export async function createPanel(data: PanelData) {
   plan.name,
   plan.price * quantity,
   email,
-  quantity
+  quantity,
+  username,
+  total || plan.price * quantity,
+  durationDays,
+  new Date().toISOString()
 ).catch(console.error)
 
     return {

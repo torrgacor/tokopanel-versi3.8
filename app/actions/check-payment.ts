@@ -8,6 +8,7 @@ import { appConfig } from "@/data/config"
 import { markVoucherAsUsed } from "./voucher-actions"
 import { recordReferralOrder } from "./referral-tracking"
 import clientPromise from "@/lib/mongodb"
+import { sendTelegramTestimonial } from "@/lib/telegram-service"
 
 const API_ID = appConfig.pay.api_id
 const API_KEY = appConfig.pay.api_key
@@ -63,6 +64,10 @@ export async function checkPaymentStatus(transactionId: string) {
         panelServerIds: target.panelServerIds,
         expiresAt,
       })
+      const renewalPlan = plans.find((item) => item.id === payment.planId)
+      if (renewalPlan) {
+        sendTelegramTestimonial(payment.transactionId, `${renewalPlan.name} - Perpanjangan`, payment.total || payment.amount, payment.email, 1, payment.username, payment.total || payment.amount, payment.renewalDays || 30, new Date().toISOString()).catch(console.error)
+      }
       revalidatePath(`/invoice/${transactionId}`)
       return { success: true, status: "completed", panelDetails: target.panelDetails }
     }
@@ -121,6 +126,8 @@ export async function checkPaymentStatus(transactionId: string) {
         accessType: payment.accessType, 
         selectedEggId: payment.selectedEggId,
         quantity: payment.quantity,
+        total: payment.total || payment.amount,
+        durationDays: payment.durationDays,
       })
 
       if (!panelResult.success) {
