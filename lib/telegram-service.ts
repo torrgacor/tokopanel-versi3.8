@@ -137,8 +137,8 @@ function createTransactionCaption(data: {
   const discountAmount = details.discountAmount ?? 0
   const fee = details.fee ?? 0
   const productPrice = basePrice - (egg?.harga || 0) * data.quantity
-  const ram = details.memory !== undefined ? `${details.memory} MB` : "Tidak tersedia"
-  const cpu = details.cpu !== undefined ? `${details.cpu}%` : "Tidak tersedia"
+  const ram = details.memory !== undefined ? `${formatHitung(details.memory)} MB` : "Tidak tersedia"
+  const cpu = details.cpu !== undefined ? `${formatHitung(details.cpu)}%` : "Tidak tersedia"
   return [
     `<code>PEMBELIAN ${safe(data.planName?.toUpperCase())}</code>`,
     `<code>BERHASIL DI ORDER OLEH ${safe(data.username?.toUpperCase())}</code>`,
@@ -155,7 +155,7 @@ function createTransactionCaption(data: {
     "━━━━━━━━━━━━━━━━━━━━━",
     "<b>DETAIL PRODUK</b>",
     `Produk :ㅤㅤㅤㅤ   ${safe(data.planName)}`,
-    `Spesifikasi :ㅤㅤㅤ${formatHitung(ram)}MB / ${formatHitung(cpu)}%`,
+    `Spesifikasi :ㅤㅤㅤ${ram} / ${cpu}`,
     `Type Egg :ㅤㅤㅤㅤ${safe(egg?.nama || (details.selectedEggId ? `ID ${details.selectedEggId}` : "Default"))}`,
     `Jumlah Produk :ㅤ${data.quantity} Panel`,
     `Masa Aktif :ㅤㅤㅤ${data.durationDays} Hari`,
