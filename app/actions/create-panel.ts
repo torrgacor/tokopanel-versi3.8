@@ -131,7 +131,7 @@ export async function createPanel(data: PanelData) {
   total || plan.price * quantity,
   durationDays,
   new Date().toISOString(),
-  { serverType, selectedEggId, basePrice, discountAmount, fee }
+  { serverType, selectedEggId, memory, cpu, basePrice, discountAmount, fee }
 ).catch(console.error)
 
     return {

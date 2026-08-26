@@ -62,6 +62,8 @@ export async function sendTelegramTestimonial(
   details?: {
     serverType?: "public" | "private"
     selectedEggId?: number | null
+    memory?: number
+    cpu?: number
     basePrice?: number
     discountAmount?: number
     fee?: number
@@ -120,6 +122,8 @@ function createTransactionCaption(data: {
   details?: {
     serverType?: "public" | "private"
     selectedEggId?: number | null
+    memory?: number
+    cpu?: number
     basePrice?: number
     discountAmount?: number
     fee?: number
@@ -133,7 +137,8 @@ function createTransactionCaption(data: {
   const discountAmount = details.discountAmount ?? 0
   const fee = details.fee ?? 0
   const productPrice = basePrice - (egg?.harga || 0) * data.quantity
-  const serverType = details.serverType === "public" ? "Public" : details.serverType === "private" ? "Private" : "Tidak tersedia"
+  const ram = details.memory !== undefined ? `${details.memory} MB` : "Tidak tersedia"
+  const cpu = details.cpu !== undefined ? `${details.cpu}%` : "Tidak tersedia"
   return [
     "<b>╔════════════════════╗</b>",
     "<b>      TOKOPANEL      </b>",
@@ -143,7 +148,8 @@ function createTransactionCaption(data: {
     `🧾 <b>ID Transaksi</b>  <code>${safe(data.transactionId)}</code>`,
     `👤 <b>Pelanggan</b>     ${safe(data.username)}`,
     `📦 <b>Produk</b>        ${safe(data.planName)}`,
-    `🖥️ <b>Tipe Nodes</b>    ${serverType}`,
+    `🧠 <b>RAM Panel</b>      ${ram}`,
+    `⚙️ <b>CPU Panel</b>      ${cpu}`,
     `🥚 <b>Tipe Egg</b>      ${safe(egg?.nama || (details.selectedEggId ? `ID ${details.selectedEggId}` : "Default"))}`,
     `🔢 <b>Jumlah Produk</b> ${data.quantity} unit`,
     `⏳ <b>Masa Aktif</b>    ${data.durationDays} hari`,
