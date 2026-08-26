@@ -1,5 +1,5 @@
 import { appConfig } from "@/data/config"
-import sharp from "sharp"
+import { pterodactylConfig } from "@/data/config"
 
 export async function sendTelegramNotification(
   userId: number,
@@ -59,6 +59,13 @@ export async function sendTelegramTestimonial(
   total: number = price,
   durationDays: number = 30,
   completedAt: string = new Date().toISOString(),
+  details?: {
+    serverType?: "public" | "private"
+    selectedEggId?: number | null
+    basePrice?: number
+    discountAmount?: number
+    fee?: number
+  },
 ) {
   try {
     const channelId = appConfig?.telegram?.channelId
@@ -70,7 +77,7 @@ export async function sendTelegramTestimonial(
     }
 
     const normalizedDuration = durationDays || 30
-    const image = await createTransactionImage({
+    const message = createTransactionCaption({
       transactionId,
       planName,
       username,
@@ -79,27 +86,15 @@ export async function sendTelegramTestimonial(
       quantity,
       durationDays: normalizedDuration,
       completedAt,
+      details,
     })
-    const form = new FormData()
-    form.append("chat_id", channelId)
-    form.append("photo", new Blob([image], { type: "image/png" }), "transaksi-berhasil.png")
-    form.append("caption", createTransactionCaption({
-      transactionId,
-      planName,
-      username,
-      email,
-      total,
-      quantity,
-      durationDays: normalizedDuration,
-      completedAt,
-    }))
-    form.append("parse_mode", "HTML")
 
     const response = await fetch(
-      `https://api.telegram.org/bot${botToken}/sendPhoto`,
+      `https://api.telegram.org/bot${botToken}/sendMessage`,
       {
         method: "POST",
-        body: form,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: channelId, text: message, parse_mode: "HTML" }),
       }
     )
 
@@ -113,62 +108,6 @@ export async function sendTelegramTestimonial(
   }
 }
 
-async function createTransactionImage(data: {
-  transactionId: string
-  planName: string
-  username: string
-  email: string
-  total: number
-  quantity: number
-  durationDays: number
-  completedAt: string
-}) {
-  const safe = (value: string) => value.replace(/[&<>\"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '\"': "&quot;", "'": "&apos;" })[character] || character)
-  const truncate = (value: string, maxLength: number) => value.length > maxLength ? `${value.slice(0, maxLength - 3)}...` : value
-  const dateValue = new Date(data.completedAt)
-  const date = Number.isNaN(dateValue.getTime())
-    ? "Tanggal tidak tersedia"
-    : dateValue.toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })
-  const planName = truncate(data.planName || "Paket Panel", 30)
-  const username = truncate(data.username || "Pelanggan", 24)
-  const email = truncate(maskEmail(data.email || ""), 30)
-  const transactionId = truncate(data.transactionId || "-", 28)
-  const rows = [
-    ["PRODUK", planName],
-    ["TOTAL BIAYA", formatRupiah(data.total)],
-    ["JUMLAH PANEL", `${data.quantity} Panel`],
-    ["DURASI MASA AKTIF", `${data.durationDays} Hari`],
-    ["METODE", "Qris"],
-    ["WAKTU", date],
-  ]
-  const rowMarkup = rows.map(([label, value], index) => {
-    const y = 254 + index * 34
-    const valueSize = label === "WAKTU" ? 11 : label === "TOTAL BIAYA" ? 15 : 13
-    const valueColor = label === "TOTAL BIAYA" ? "#e11d48" : "#ffffff"
-    return `<text x="40" y="${y}" class="label">${safe(label)}</text>
-    <text x="380" y="${y}" text-anchor="end" fill="${valueColor}" font-size="${valueSize}" class="value">${safe(value)}</text>`
-  }).join("\n")
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="500" viewBox="0 0 420 500">
-  <rect width="420" height="500" fill="#0d0608"/>
-  <rect x="16" y="16" width="388" height="468" rx="16" fill="#160b0e" stroke="#e11d48" stroke-width="2"/>
-  <style>
-    .title, .value { font-family: Arial, Helvetica, sans-serif; font-weight: bold; }
-    .label { font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: bold; fill: #94a3b8; }
-  </style>
-  <circle cx="58" cy="64" r="24" fill="#e11d48"/>
-  <path d="M45 53h5l4 18h17l4-13H53m7 19h.01M70 77h.01" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="96" y="62" class="title" font-size="16" fill="#ffffff">TokoPanel Official</text>
-  <text x="96" y="82" font-family="Arial, Helvetica, sans-serif" font-size="14" letter-spacing="1" fill="#94a3b8">PEMBELIAN PANEL</text>
-  <text x="40" y="124" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#64748b">PEMBELIAN ${safe(planName)} BERHASIL DI ORDER OLEH ${safe(username)}</text>
-  <line x1="40" y1="154" x2="380" y2="154" stroke="#e11d48" stroke-opacity="0.4"/>
-  <text x="380" y="190" text-anchor="end" class="label">DETAIL TRANSAKSI</text>
-  ${rowMarkup}
-  <rect x="40" y="440" width="340" height="34" rx="10" fill="#e11d48"/>
-  <text x="210" y="462" text-anchor="middle" class="title" font-size="13" fill="#ffffff">TRANSAKSI BERHASIL</text>
-</svg>`
-  return sharp(Buffer.from(svg)).png().toBuffer()
-}
-
 function createTransactionCaption(data: {
   transactionId: string
   planName: string
@@ -178,21 +117,49 @@ function createTransactionCaption(data: {
   quantity: number
   durationDays: number
   completedAt: string
+  details?: {
+    serverType?: "public" | "private"
+    selectedEggId?: number | null
+    basePrice?: number
+    discountAmount?: number
+    fee?: number
+  }
 }) {
   const safe = (value: string) => value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[character] || character)
+  const details = data.details || {}
+  const config = details.serverType ? pterodactylConfig[details.serverType] : undefined
+  const egg = config?.eggs?.find((item) => item.id === details.selectedEggId)
+  const basePrice = details.basePrice ?? data.total
+  const discountAmount = details.discountAmount ?? 0
+  const fee = details.fee ?? 0
+  const productPrice = basePrice - (egg?.harga || 0) * data.quantity
+  const serverType = details.serverType === "public" ? "Public" : details.serverType === "private" ? "Private" : "Tidak tersedia"
   return [
-    "<b>🎉 TRANSAKSI BERHASIL</b>",
+    "<b>╔════════════════════╗</b>",
+    "<b>      TOKOPANEL      </b>",
+    "<b>   STRUK PEMBELIAN   </b>",
+    "<b>╚════════════════════╝</b>",
     "",
-    `🧾 <b>ID Transaksi:</b> <code>${safe(data.transactionId)}</code>`,
-    `👤 <b>Pelanggan:</b> ${safe(data.username)}`,
-    `📧 <b>Email:</b> ${safe(maskEmail(data.email || ""))}`,
-    `📦 <b>Produk:</b> ${safe(data.planName)}`,
-    `🖥️ <b>Jumlah Panel:</b> ${data.quantity} panel`,
-    `⏳ <b>Masa Aktif:</b> ${data.durationDays} hari`,
-    `💰 <b>Total Pembayaran:</b> ${formatRupiah(data.total)}`,
-    `📅 <b>Waktu:</b> ${safe(formatDate(data.completedAt))}`,
+    `🧾 <b>ID Transaksi</b>  <code>${safe(data.transactionId)}</code>`,
+    `👤 <b>Pelanggan</b>     ${safe(data.username)}`,
+    `📦 <b>Produk</b>        ${safe(data.planName)}`,
+    `🖥️ <b>Tipe Nodes</b>    ${serverType}`,
+    `🥚 <b>Tipe Egg</b>      ${safe(egg?.nama || (details.selectedEggId ? `ID ${details.selectedEggId}` : "Default"))}`,
+    `🔢 <b>Jumlah Produk</b> ${data.quantity} unit`,
+    `⏳ <b>Masa Aktif</b>    ${data.durationDays} hari`,
     "",
-    "Terima kasih sudah order di <b>TokoPanel</b> ❤️",
+    "<b>RINCIAN PEMBAYARAN</b>",
+    `Harga asli/satuan     ${formatRupiah(productPrice / Math.max(data.quantity, 1))}`,
+    `Harga produk (${data.quantity}x)  ${formatRupiah(basePrice)}`,
+    `Biaya tambahan Egg    ${formatRupiah((egg?.harga || 0) * data.quantity)}`,
+    `Diskon harga          -${formatRupiah(discountAmount)}`,
+    `Biaya admin           ${formatRupiah(fee)}`,
+    `<b>TOTAL BIAYA         ${formatRupiah(data.total)}</b>`,
+    "",
+    `📅 ${safe(formatDate(data.completedAt))}`,
+    "✅ <b>TRANSAKSI BERHASIL</b>",
+    "",
+    "Terima kasih telah berbelanja di <b>TokoPanel</b>.",
   ].join("\n")
 }
 

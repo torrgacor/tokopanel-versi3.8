@@ -128,6 +128,9 @@ export async function checkPaymentStatus(transactionId: string) {
         quantity: payment.quantity,
         total: payment.total || payment.amount,
         durationDays: payment.durationDays,
+        basePrice: payment.amount + (payment.discountAmount || 0),
+        discountAmount: payment.discountAmount,
+        fee: payment.fee,
       })
 
       if (!panelResult.success) {

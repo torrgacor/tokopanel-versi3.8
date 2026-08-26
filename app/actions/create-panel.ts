@@ -24,6 +24,9 @@ type PanelData = {
   quantity: number
   total?: number
   durationDays?: number
+  basePrice?: number
+  discountAmount?: number
+  fee?: number
 }
 
 export async function createPanel(data: PanelData) {
@@ -43,6 +46,9 @@ export async function createPanel(data: PanelData) {
       quantity,
       total = 0,
       durationDays,
+      basePrice,
+      discountAmount,
+      fee,
     } = data
 
     const password = generatePassword(10)
@@ -124,7 +130,8 @@ export async function createPanel(data: PanelData) {
   username,
   total || plan.price * quantity,
   durationDays,
-  new Date().toISOString()
+  new Date().toISOString(),
+  { serverType, selectedEggId, basePrice, discountAmount, fee }
 ).catch(console.error)
 
     return {
