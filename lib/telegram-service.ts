@@ -156,7 +156,7 @@ function createTransactionCaption(data: {
     "<b>DETAIL PRODUK</b>",
     `Produk :ㅤㅤㅤㅤ   ${safe(data.planName)}`,
     `Spesifikasi :ㅤㅤㅤ${ram} / ${cpu}`,
-    `Type Egg :ㅤㅤㅤㅤ${safe(egg?.nama || (details.selectedEggId ? `ID ${details.selectedEggId}` : "Default"))}`,
+    `Type Egg :ㅤㅤㅤㅤ${safe(egg?.nama || (details.selectedEggId ? `ID ${details.selectedEggId}` : "Node.js"))}`,
     `Jumlah Produk :ㅤ${data.quantity} Panel`,
     `Masa Aktif :ㅤㅤㅤ${data.durationDays} Hari`,
     "━━━━━━━━━━━━━━━━━━━━━",
