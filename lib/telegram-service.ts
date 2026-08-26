@@ -205,6 +205,15 @@ function formatRupiah(amount: number): string {
     maximumFractionDigits: 0,
   }).format(amount)
 }
+
+function formatHitung(amount: number): string {
+  return new Intl.NumberFormat("id-ID", {
+    style: "decimal",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
 export async function sendTelegramAdminMessage(text: string) {
   try {
     if (!appConfig?.telegram?.botToken || !appConfig?.telegram?.ownerId) {
