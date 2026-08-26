@@ -174,7 +174,7 @@ function createTransactionCaption(data: {
     "Panel Pterodactyl Kami. 😇🙏🏻",
     "",
     "<b>Kunjungi Website :</b>",
-    "${appConfig.LinkWebsite}",
+    `${appConfig.LinkWebsite}`,
     "ㅤㅤ",
   ].join("\n")
 }
